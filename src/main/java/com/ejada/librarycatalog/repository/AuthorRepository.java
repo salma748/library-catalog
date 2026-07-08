@@ -1,0 +1,7 @@
+package com.ejada.librarycatalog.repository;
+
+import com.ejada.librarycatalog.entity.Author;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface AuthorRepository extends JpaRepository<Author,Long> {
+}

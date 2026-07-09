@@ -1,6 +1,10 @@
 package com.ejada.librarycatalog.service;
 
+import com.ejada.librarycatalog.dto.AuthorRequestDto;
+import com.ejada.librarycatalog.dto.AuthorResponseDto;
 import com.ejada.librarycatalog.entity.Author;
+import com.ejada.librarycatalog.exception.ResourceNotFoundException;
+import com.ejada.librarycatalog.mapper.AuthorMapper;
 import com.ejada.librarycatalog.repository.AuthorRepository;
 import org.springframework.stereotype.Service;
 
@@ -10,35 +14,65 @@ import java.util.List;
 public class AuthorService {
 
     private final AuthorRepository authorRepository;
+    private final AuthorMapper authorMapper;
 
-    public AuthorService(AuthorRepository authorRepository) {
+    public AuthorService(AuthorRepository authorRepository, AuthorMapper authorMapper) {
         this.authorRepository = authorRepository;
+        this.authorMapper = authorMapper;
     }
 
-    public void createAuthor(Author author) {
+    public void createAuthor(AuthorRequestDto authorRequestDto) {
+        Author author = authorMapper.toEntity(authorRequestDto);
         authorRepository.save(author);
     }
 
-    public List<Author> getAllAuthors() {
-        return authorRepository.findAll();
+    public List<AuthorResponseDto> getAllAuthors() {
+        return authorRepository.findAll()
+                .stream()
+                .map(authorMapper::toResponseDto)
+                .toList();
     }
 
-    public Author getAuthorById(Long id) {
-        return authorRepository.findById(id).orElse(null);
+    public AuthorResponseDto getAuthorById(Long id) {
+        Author author = authorRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Author not found with id: " + id
+                        )
+                );
+
+        return authorMapper.toResponseDto(author);
     }
 
-    public Author updateAuthor(Long id, Author updatedAuthor) {
-        Author existingAuthor = authorRepository.findById(id).orElse(null);
-        if (existingAuthor == null) {
-            return null;
-        }
-        existingAuthor.setName(updatedAuthor.getName());
-        existingAuthor.setEmail(updatedAuthor.getEmail());
-        existingAuthor.setNationality(updatedAuthor.getNationality());
-        return authorRepository.save(existingAuthor);
+    public AuthorResponseDto updateAuthor(
+            Long id,
+            AuthorRequestDto authorRequestDto) {
+
+        Author existingAuthor = authorRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Author not found with id: " + id
+                        )
+                );
+
+        authorMapper.updateEntity(
+                existingAuthor,
+                authorRequestDto
+        );
+
+        Author updatedAuthor = authorRepository.save(existingAuthor);
+
+        return authorMapper.toResponseDto(updatedAuthor);
     }
 
     public void deleteAuthor(Long id) {
-        authorRepository.deleteById(id);
+        Author author = authorRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Author not found with id: " + id
+                        )
+                );
+
+        authorRepository.delete(author);
     }
 }

@@ -1,7 +1,9 @@
 package com.ejada.librarycatalog.controller;
 
-import com.ejada.librarycatalog.entity.Author;
+import com.ejada.librarycatalog.dto.AuthorRequestDto;
+import com.ejada.librarycatalog.dto.AuthorResponseDto;
 import com.ejada.librarycatalog.service.AuthorService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,24 +20,27 @@ public class AuthorController {
     }
 
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)     //without this line , Spring would return 200 OK
-    public void createAuthor(@RequestBody Author author) {
-         authorService.createAuthor(author);
+    @ResponseStatus(HttpStatus.CREATED)
+    public void createAuthor(@Valid @RequestBody AuthorRequestDto authorRequestDto) {
+        authorService.createAuthor(authorRequestDto);
     }
 
     @GetMapping
-    public List<Author> getAllAuthors() {
+    public List<AuthorResponseDto> getAllAuthors() {
         return authorService.getAllAuthors();
     }
 
     @GetMapping("/{id}")
-    public Author getAuthorById(@PathVariable Long id) {
+    public AuthorResponseDto getAuthorById(@PathVariable Long id) {
         return authorService.getAuthorById(id);
     }
 
     @PutMapping("/{id}")
-    public Author updateAuthor(@PathVariable Long id, @RequestBody Author author) {
-        return authorService.updateAuthor(id, author);
+    public AuthorResponseDto updateAuthor(
+            @PathVariable Long id,
+            @Valid @RequestBody AuthorRequestDto authorRequestDto) {
+
+        return authorService.updateAuthor(id, authorRequestDto);
     }
 
     @DeleteMapping("/{id}")

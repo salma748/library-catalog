@@ -6,6 +6,8 @@ import com.ejada.librarycatalog.entity.Author;
 import com.ejada.librarycatalog.exception.ResourceNotFoundException;
 import com.ejada.librarycatalog.mapper.AuthorMapper;
 import com.ejada.librarycatalog.repository.AuthorRepository;
+import com.ejada.librarycatalog.exception.BusinessConflictException;
+import com.ejada.librarycatalog.repository.BookRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,10 +16,16 @@ import java.util.List;
 public class AuthorService {
 
     private final AuthorRepository authorRepository;
+    private final BookRepository bookRepository;
     private final AuthorMapper authorMapper;
 
-    public AuthorService(AuthorRepository authorRepository, AuthorMapper authorMapper) {
+    public AuthorService(
+            AuthorRepository authorRepository,
+            BookRepository bookRepository,
+            AuthorMapper authorMapper) {
+
         this.authorRepository = authorRepository;
+        this.bookRepository = bookRepository;
         this.authorMapper = authorMapper;
     }
 
@@ -72,7 +80,13 @@ public class AuthorService {
                                 "Author not found with id: " + id
                         )
                 );
-
+        if (bookRepository.existsByAuthorId(id)) {
+            throw new BusinessConflictException(
+                    "Cannot delete author with id "
+                            + id
+                            + " because the author has associated books"
+            );
+        }
         authorRepository.delete(author);
     }
 }

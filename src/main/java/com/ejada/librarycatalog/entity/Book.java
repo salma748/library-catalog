@@ -26,12 +26,7 @@ public class Book {
     public Book() {
     }
 
-    public Book(
-            String title,
-            String isbn,
-            Integer publicationYear,
-            Author author) {
-
+    public Book(String title, String isbn, Integer publicationYear, Author author) {
         this.title = title;
         this.isbn = isbn;
         this.publicationYear = publicationYear;

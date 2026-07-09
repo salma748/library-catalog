@@ -1,7 +1,11 @@
 package com.ejada.librarycatalog.service;
 
+import com.ejada.librarycatalog.dto.BookRequestDto;
+import com.ejada.librarycatalog.dto.BookResponseDto;
 import com.ejada.librarycatalog.entity.Author;
 import com.ejada.librarycatalog.entity.Book;
+import com.ejada.librarycatalog.exception.ResourceNotFoundException;
+import com.ejada.librarycatalog.mapper.BookMapper;
 import com.ejada.librarycatalog.repository.AuthorRepository;
 import com.ejada.librarycatalog.repository.BookRepository;
 import org.springframework.stereotype.Service;
@@ -13,53 +17,94 @@ public class BookService {
 
     private final BookRepository bookRepository;
     private final AuthorRepository authorRepository;
+    private final BookMapper bookMapper;
 
-    public BookService(BookRepository bookRepository, AuthorRepository authorRepository) {
+    public BookService(
+            BookRepository bookRepository,
+            AuthorRepository authorRepository,
+            BookMapper bookMapper) {
+
         this.bookRepository = bookRepository;
         this.authorRepository = authorRepository;
+        this.bookMapper = bookMapper;
     }
 
-    public void createBook(Book book) {
-        Long authorId = book.getAuthor().getId();
-        Author author = authorRepository.findById(authorId).orElse(null);
-        if (author == null) {
-            return;
-        }
-        book.setAuthor(author);
+    public void createBook(BookRequestDto bookRequestDto) {
+        Author author = authorRepository
+                .findById(bookRequestDto.getAuthorId())
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Author not found with id: "
+                                        + bookRequestDto.getAuthorId()
+                        )
+                );
+        Book book = bookMapper.toEntity(
+                bookRequestDto,
+                author
+        );
         bookRepository.save(book);
     }
 
-    public List<Book> getAllBooks() {
-        return bookRepository.findAll();
+    public List<BookResponseDto> getAllBooks() {
+        return bookRepository.findAll()
+                .stream()
+                .map(bookMapper::toResponseDto)
+                .toList();
     }
 
-    public Book getBookById(Long id) {
-        return bookRepository.findById(id).orElse(null);
+    public BookResponseDto getBookById(Long id) {
+        Book book = bookRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Book not found with id: " + id
+                        )
+                );
+        return bookMapper.toResponseDto(book);
     }
 
-    public Book updateBook(Long id, Book updatedBook) {
-        Book existingBook = bookRepository.findById(id).orElse(null);
-        if (existingBook == null) {
-            return null;
-        }
-        existingBook.setTitle(updatedBook.getTitle());
-        existingBook.setIsbn(updatedBook.getIsbn());
-        existingBook.setPublicationYear(updatedBook.getPublicationYear());
-        if (updatedBook.getAuthor() != null) {
-            Long authorId = updatedBook.getAuthor().getId();
-            Author author = authorRepository.findById(authorId).orElse(null);
-            if (author != null) {
-                existingBook.setAuthor(author);
-            }
-        }
-        return bookRepository.save(existingBook);
+    public BookResponseDto updateBook(Long id, BookRequestDto bookRequestDto) {
+        Book existingBook = bookRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Book not found with id: " + id
+                        )
+                );
+        Author author = authorRepository
+                .findById(bookRequestDto.getAuthorId())
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Author not found with id: "
+                                        + bookRequestDto.getAuthorId()
+                        )
+                );
+        bookMapper.updateEntity(
+                existingBook,
+                bookRequestDto,
+                author
+        );
+        Book updatedBook = bookRepository.save(existingBook);
+        return bookMapper.toResponseDto(updatedBook);
     }
 
     public void deleteBook(Long id) {
-        bookRepository.deleteById(id);
+        Book book = bookRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Book not found with id: " + id
+                        )
+                );
+        bookRepository.delete(book);
     }
 
-    public List<Book> getBooksByAuthorId(Long authorId) {
-        return bookRepository.findByAuthorId(authorId);
+    public List<BookResponseDto> getBooksByAuthorId(Long authorId) {
+        if (!authorRepository.existsById(authorId)) {
+            throw new ResourceNotFoundException(
+                    "Author not found with id: " + authorId
+            );
+        }
+        return bookRepository.findByAuthorId(authorId)
+                .stream()
+                .map(bookMapper::toResponseDto)
+                .toList();
     }
 }

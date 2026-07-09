@@ -31,6 +31,7 @@ The project uses PostgreSQL as the database and Docker Compose to run the databa
 - Request validation
 - Global exception handling
 - Standardized error responses
+- Swagger/OpenAPI documentation
 - `400 Bad Request` for validation errors
 - `404 Not Found` for missing resources
 - `409 Conflict` for business and data conflicts
@@ -48,6 +49,7 @@ The project uses PostgreSQL as the database and Docker Compose to run the databa
 - Docker Compose
 - Maven
 - Bean Validation
+- Springdoc OpenAPI
 - Git
 - GitHub
 
@@ -55,6 +57,7 @@ The project uses PostgreSQL as the database and Docker Compose to run the databa
 
 ```text
 src/main/java/com/ejada/librarycatalog
+├── config
 ├── controller
 ├── dto
 ├── entity
@@ -154,6 +157,17 @@ docker compose down
 | PUT | `/api/books/{id}` | Update a book |
 | DELETE | `/api/books/{id}` | Delete a book |
 | GET | `/api/books/author/{authorId}` | Get books by author ID |
+
+## API Documentation
+
+Swagger/OpenAPI documentation is available through Springdoc.
+
+After starting the application, open:
+
+- Swagger UI: `http://localhost:8080/swagger-ui/index.html`
+- OpenAPI JSON: `http://localhost:8080/v3/api-docs`
+
+Swagger UI can be used to explore and test the Author and Book API endpoints.
 
 ## Example Requests
 
@@ -256,6 +270,7 @@ main
 feature/author-management
 feature/book-management
 feature/api-enhancements
+feature/api-documentation
 ```
 
 The project was divided into the following phases:
@@ -263,12 +278,12 @@ The project was divided into the following phases:
 - **Phase 1:** Author management
 - **Phase 2:** Book management and Author-Book relationship
 - **Phase 3:** DTOs, validation, mapping, and exception handling
+- **API Documentation:** Swagger/OpenAPI documentation using Springdoc
 
 Feature branches were integrated through pull requests and merge commits.
 
 ## Upcoming Work
 
-- Add Swagger/OpenAPI documentation using Springdoc
 - Complete and document the Git conflict resolution exercise
 
 ## Author
